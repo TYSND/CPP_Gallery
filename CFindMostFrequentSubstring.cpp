@@ -29,8 +29,8 @@ CFindMostFrequentSubstring::CFindMostFrequentSubstring(unsigned char* _pucMain, 
 
 int CFindMostFrequentSubstring::GetSubstring_SA(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen)
 {
-	const int MAX_CHARACTER = 255;
-	int nNewMainStrLen = std::max(m_nMainStrLen + 1, MAX_CHARACTER + 1);
+	int nCharacter = 255;
+	int nNewMainStrLen = std::max(m_nMainStrLen + 1, nCharacter + 1);
 	unsigned char* pcNewMain = nullptr;
 
 	int* pnCnt = nullptr, *pnOldRank = nullptr, *pnID = nullptr;
@@ -64,13 +64,13 @@ int CFindMostFrequentSubstring::GetSubstring_SA(double _dFrequencyPow, double _d
 		return -1;
 	}
 
-	for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+	for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 	{
 		m_pnRank[nIndex] = pcNewMain[nIndex];
 		++pnCnt[m_pnRank[nIndex]];
 	}
 	
-	for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+	for (int nIndex = 1; nIndex <= nCharacter; nIndex++)
 	{
 		pnCnt[nIndex] += pnCnt[nIndex - 1];
 	}
@@ -89,17 +89,17 @@ int CFindMostFrequentSubstring::GetSubstring_SA(double _dFrequencyPow, double _d
 	}
 
 	// 基数排序
-	for (int w = 1; w < m_nMainStrLen; w <<= 1)
+	for (int w = 1; w < m_nMainStrLen; w <<= 1, nCharacter = m_nMainStrLen)
 	{
-		// 按当前字符的下一个字符排序
+		// 第二关键字
 		memset(pnCnt, 0, sizeof(int) * nNewMainStrLen);
 		memcpy(pnID + 1, m_pnSuffixArray + 1, m_nMainStrLen * sizeof(int));
-		for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 		{
 			++pnCnt[m_pnRank[pnID[nIndex] + w]];
 		}
 
-		for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+		for (int nIndex = 1; nIndex <= nCharacter; nIndex++)
 		{
 			pnCnt[nIndex] += pnCnt[nIndex - 1];
 		}
@@ -109,15 +109,15 @@ int CFindMostFrequentSubstring::GetSubstring_SA(double _dFrequencyPow, double _d
 			m_pnSuffixArray[pnCnt[m_pnRank[pnID[nIndex] + w]]--] = pnID[nIndex];
 		}
 
-		// 按当前字符排序
+		// 第一关键字
 		memset(pnCnt, 0, sizeof(int) * nNewMainStrLen);
 		memcpy(pnID + 1, m_pnSuffixArray + 1, m_nMainStrLen * sizeof(int));
-		for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 		{
 			++pnCnt[m_pnRank[pnID[nIndex]]];
 		}
 
-		for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+		for (int nIndex = 1; nIndex <= nCharacter; nIndex++)
 		{
 			pnCnt[nIndex] += pnCnt[nIndex - 1];
 		}
