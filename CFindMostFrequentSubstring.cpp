@@ -27,13 +27,127 @@ CFindMostFrequentSubstring::CFindMostFrequentSubstring(unsigned char* _pucMain, 
 	}
 }
 
-int CFindMostFrequentSubstring::GetSubstring_DP(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet)
+int CFindMostFrequentSubstring::GetSubstring_SA(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen)
 {
-	// 想法：dp[i][j] 以字符i开始，且长度为j的字符出现的次数
+	const int MAX_CHARACTER = 255;
+	int nNewMainStrLen = std::max(m_nMainStrLen + 1, MAX_CHARACTER + 1);
+	unsigned char* pcNewMain = nullptr;
 
+	int* pnCnt = nullptr, *pnOldRank = nullptr, *pnID = nullptr;
+	try
+	{
+		pcNewMain = new unsigned char[nNewMainStrLen];
+		m_pnSuffixArray = new int[nNewMainStrLen];
+		m_pnRank = new int[nNewMainStrLen];
+		pnOldRank = new int[nNewMainStrLen];
+		pnCnt = new int[nNewMainStrLen];
+		pnID = new int[nNewMainStrLen];
+
+		memcpy(pcNewMain + 1, m_pucMain, sizeof(unsigned char) * m_nMainStrLen);
+		memset(m_pnSuffixArray, 0, sizeof(int) * nNewMainStrLen);
+		memset(m_pnRank, 0, sizeof(int) * nNewMainStrLen);
+		memset(pnOldRank, 0, sizeof(int) * nNewMainStrLen);
+		memset(pnCnt, 0, sizeof(int) * nNewMainStrLen);
+	}
+	catch (...)
+	{
+		if (pcNewMain != nullptr) delete[] pcNewMain;
+		if (m_pnSuffixArray != nullptr) delete[] m_pnSuffixArray;
+		if (m_pnRank != nullptr) delete[] m_pnRank;
+		if (pnOldRank != nullptr) delete[] pnOldRank;
+		if (pnCnt != nullptr) delete[] pnCnt;
+		if (pnID != nullptr) delete[] pnID;
+		
+
+		pcNewMain = nullptr;
+		pnOldRank = m_pnSuffixArray = m_pnRank = pnCnt = pnID = nullptr;
+		return -1;
+	}
+
+	for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+	{
+		m_pnRank[nIndex] = pcNewMain[nIndex];
+		++pnCnt[m_pnRank[nIndex]];
+	}
+	
+	for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+	{
+		pnCnt[nIndex] += pnCnt[nIndex - 1];
+	}
+
+	for (int nIndex = m_nMainStrLen; nIndex >= 1; nIndex--)
+	{
+		m_pnSuffixArray[pnCnt[m_pnRank[nIndex]]--] = nIndex;
+	}
+
+	memcpy(pnOldRank + 1, m_pnRank + 1, m_nMainStrLen * sizeof(int));
+
+	for (int nScore = 0, nIndex = 1; nIndex <= m_nMainStrLen; ++nIndex)
+	{
+		if (pnOldRank[m_pnSuffixArray[nIndex]] == pnOldRank[m_pnSuffixArray[nIndex - 1]]) m_pnRank[m_pnSuffixArray[nIndex]] = nScore;
+		else m_pnRank[m_pnSuffixArray[nIndex]] = ++nScore;
+	}
+
+	// 基数排序
+	for (int w = 1; w < m_nMainStrLen; w <<= 1)
+	{
+		// 按当前字符的下一个字符排序
+		memset(pnCnt, 0, sizeof(int) * nNewMainStrLen);
+		memcpy(pnID + 1, m_pnSuffixArray + 1, m_nMainStrLen * sizeof(int));
+		for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+		{
+			++pnCnt[m_pnRank[pnID[nIndex] + w]];
+		}
+
+		for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+		{
+			pnCnt[nIndex] += pnCnt[nIndex - 1];
+		}
+
+		for (int nIndex = m_nMainStrLen; nIndex >= 1; nIndex--)
+		{
+			m_pnSuffixArray[pnCnt[m_pnRank[pnID[nIndex] + w]]--] = pnID[nIndex];
+		}
+
+		// 按当前字符排序
+		memset(pnCnt, 0, sizeof(int) * nNewMainStrLen);
+		memcpy(pnID + 1, m_pnSuffixArray + 1, m_nMainStrLen * sizeof(int));
+		for (int nIndex = 0; nIndex < nNewMainStrLen; nIndex++)
+		{
+			++pnCnt[m_pnRank[pnID[nIndex]]];
+		}
+
+		for (int nIndex = 0; nIndex <= MAX_CHARACTER; nIndex++)
+		{
+			pnCnt[nIndex] += pnCnt[nIndex - 1];
+		}
+
+		for (int nIndex = m_nMainStrLen; nIndex >= 1; nIndex--)
+		{
+			m_pnSuffixArray[pnCnt[m_pnRank[pnID[nIndex]]]--] = pnID[nIndex];
+		}
+
+
+		memcpy(pnOldRank + 1, m_pnRank + 1, sizeof(int) * m_nMainStrLen);
+		for (int nScore = 0, nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
+		{
+			if (pnOldRank[m_pnSuffixArray[nIndex]] == pnOldRank[m_pnSuffixArray[nIndex - 1]]
+				&& pnOldRank[m_pnSuffixArray[nIndex] + w] == pnOldRank[m_pnSuffixArray[nIndex - 1] + w])
+			{
+				m_pnRank[m_pnSuffixArray[nIndex]] = nScore;
+			}
+			else
+			{
+				m_pnRank[m_pnSuffixArray[nIndex]] = ++nScore;
+			}
+		}
+
+	}
+
+	return 0;
 }
 
-int CFindMostFrequentSubstring::GetSubstring_BruteForce(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet)
+int CFindMostFrequentSubstring::GetSubstring_BruteForce(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen)
 {
 #define GET_FIRST_LARGEEQUAL_POW2(_OriginValue, _Pow2Value) (_OriginValue + (_Pow2Value - 1)) & ~(_Pow2Value - 1)
 	if (_ppucRet == nullptr || m_pucMain == nullptr) return -1;
@@ -74,6 +188,7 @@ int CFindMostFrequentSubstring::GetSubstring_BruteForce(double _dFrequencyPow, d
 		if (*_ppucRet == nullptr) return -1;
 		
 		memcpy(*_ppucRet, m_pucMain + nRetBegin, nRetLen * sizeof(unsigned char));
+		_nRetLen = nRetLen;
 		return 0;
 	}
 }
