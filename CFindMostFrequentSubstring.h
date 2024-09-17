@@ -1,24 +1,26 @@
 #pragma once
 #include<iostream>
+
+constexpr int MAX_CHARACTER_COUNT = 256;
+constexpr int MAX_CHARACTER_DOUBLECOUNT = 512; // Á½±¶µÄ×î´ó×Ö·ûÊıÁ¿£¬ÓÃÓÚºóĞø½«Ïò×óÏòÓÒÀ©Õ¹µÄ×Ó´®·Ö¿ª
+
 class CFindMostFrequentSubstring
 {
 public:
 	CFindMostFrequentSubstring();
 	CFindMostFrequentSubstring(unsigned char* _pucMain, int _nMainStrLen);
-	// åç¼€æ•°ç»„
-	int GetSubstring_SA(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen);
-	// æš´åŠ›æ–¹æ³•
-	int GetSubstring_BruteForce(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen);
+	~CFindMostFrequentSubstring();
+
+	int GetSubString(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen);
+
+	int Recur(int** _ppnFrequentSubStrBeginIndexs, int** _ppnNextSameSubStrBeginIndexs, int** _ppnExpendCharacterCounts, int* _pnRetSection, int _nMaxCharacterCount, int _nCurrentSubStrLen);
+
+	int GetSubString1(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen);
 
 private:
-	double CalcWeight(int _nRepeatCount, int _nLength, double _dFrequencyPow, double _dLengthPow);
+	inline double CalcWeight(int _nRepeatCount, int _nLength, double _dFrequencyPow, double _dLengthPow);
 
 private:
 	unsigned char* m_pucMain = nullptr;
 	int m_nMainStrLen = 0;
-
-	// m_pnSuffixArray[i]è¡¨ç¤ºï¼šå­—å…¸åºæ’åç¬¬içš„åç¼€çš„å¼€å§‹ä¸‹æ ‡
-	int* m_pnSuffixArray = nullptr;
-	// m_pnRank[i]è¡¨ç¤ºï¼šå¼€å§‹ä¸‹æ ‡ä¸ºiçš„åç¼€çš„å­—å…¸åºæ’å
-	int* m_pnRank = nullptr;
 };
