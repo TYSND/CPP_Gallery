@@ -1,6 +1,7 @@
+#include<iostream>
 #include "CFindMostFrequentSubstring.h"
 
-// å‘å·¦æ‰©å±•çš„å­—ç¬¦ç”¨[0, MAX_CHARACTER_COUNT - 1]å­˜å‚¨ï¼Œå‘å³æ‰©å±•çš„å­—ç¬¦ç”¨[MAX_CHARACTER_COUNT, 2 * MAX_CHARACTER_COUNT - 1]å­˜å‚¨
+// Ïò×óÀ©Õ¹µÄ×Ö·ûÓÃ[0, MAX_CHARACTER_COUNT - 1]´æ´¢£¬ÏòÓÒÀ©Õ¹µÄ×Ö·ûÓÃ[MAX_CHARACTER_COUNT, 2 * MAX_CHARACTER_COUNT - 1]´æ´¢
 #define GET_CHARACTER_DOUBLESIDE_HASH(_Character, _bLeft) (_bLeft ? _Character : _Character + MAX_CHARACTER_COUNT)
 
 CFindMostFrequentSubstring::CFindMostFrequentSubstring()
@@ -48,43 +49,45 @@ int CFindMostFrequentSubstring::GetSubString(double _dFrequencyPow, double _dLen
 	}
 
 
-	/* éœ€è¦çš„æ•°æ®ç»“æ„
-	* æ•°ç»„ï¼Œå­˜å‚¨å½“å‰é•¿åº¦æ‰€æœ‰æœ€é¢‘ç¹å­ä¸²çš„å¼€å§‹ä¸‹æ ‡
-	* æ•°ç»„ï¼Œarr[i]è¡¨ç¤ºä»¥m_pucMain[i]å¼€å§‹çš„å­ä¸²ï¼Œä¸‹ä¸€ä¸ªç›¸åŒå­ä¸²çš„å¼€å§‹ä¸‹æ ‡
-	* ä¸¤ä¸ªä¸€ç»´æ•°ç»„ï¼Œåˆ†åˆ«å­˜å‚¨å½“å‰å­ä¸²å‘å·¦å’Œå‘å³çš„ä¸€ä¸ªå­—ç¬¦çš„æ•°é‡ï¼ˆç”¨äºå¯»æ‰¾é•¿åº¦+1çš„æœ€é¢‘ç¹å­ä¸²ï¼‰
+	/* ĞèÒªµÄÊı¾İ½á¹¹
+	* Êı×é£¬´æ´¢µ±Ç°³¤¶ÈËùÓĞ×îÆµ·±×Ó´®µÄ¿ªÊ¼ÏÂ±ê
+	* Êı×é£¬arr[i]±íÊ¾ÒÔm_pucMain[i]¿ªÊ¼µÄ×Ó´®£¬ÏÂÒ»¸öÏàÍ¬×Ó´®µÄ¿ªÊ¼ÏÂ±ê
+	* Á½¸öÒ»Î¬Êı×é£¬·Ö±ğ´æ´¢µ±Ç°×Ó´®Ïò×óºÍÏòÓÒµÄÒ»¸ö×Ö·ûµÄÊıÁ¿£¨ÓÃÓÚÑ°ÕÒ³¤¶È+1µÄ×îÆµ·±×Ó´®£©
 	*/
-		
-	// å­˜å‚¨ç›¸åŒå­ä¸²é“¾è¡¨çš„å¤´æŒ‡é’ˆ
+
+	// ´æ´¢ÏàÍ¬×Ó´®Á´±íµÄÍ·Ö¸Õë
 	int** ppnFrequentSubStrBeginIndexs = nullptr;
-	// ä¸‹ä¸€ä¸ªç›¸åŒå­ä¸²çš„å¼€å§‹ä¸‹æ ‡ã€‚è‹¥æ²¡æœ‰ï¼Œåˆ™æ˜¯-1
+	// ÏÂÒ»¸öÏàÍ¬×Ó´®µÄ¿ªÊ¼ÏÂ±ê¡£ÈôÃ»ÓĞ£¬ÔòÊÇ-1
 	int** ppnNextSameSubStrBeginIndexs = nullptr;
-	// å­˜å‚¨è¿­ä»£æ—¶å­ä¸²æ‰©å±•å‡ºå»çš„å­—ç¬¦æ•°é‡
+	// ´æ´¢µü´úÊ±×Ó´®À©Õ¹³öÈ¥µÄ×Ö·ûÊıÁ¿
 	int** ppnExpendCharacterCounts = nullptr;
-	// ç»“æœé›†ã€‚pnRetSection[i]è¡¨ç¤ºé•¿åº¦ä¸ºiçš„æœ€é¢‘ç¹å­ä¸²çš„å¼€å§‹ä¸‹æ ‡ã€‚æš‚æ—¶æ¯ä¸ªé•¿åº¦åªå­˜1ä¸ªå­ä¸²
-	int* pnRetSection = nullptr;
+	// ³¤¶ÈÎªiµÄ×Ó´®µÄ×î¶à³öÏÖ´ÎÊı
+	int* pnSubStrAppearCount = nullptr;
+	// ½á¹û¼¯¡£pnRetSection[i]±íÊ¾³¤¶ÈÎªiµÄ×îÆµ·±×Ó´®µÄ¿ªÊ¼ÏÂ±ê¡£ÔİÊ±Ã¿¸ö³¤¶ÈÖ»´æ1¸ö×Ó´®
+	int** ppnRetSection = nullptr;
 
 
-	// ppnFrequentSubStrBeginIndexså’ŒppnNextSameSubStrBeginIndexså·²ç”¨çš„ä¸‹æ ‡
+	// ppnFrequentSubStrBeginIndexsºÍppnNextSameSubStrBeginIndexsÒÑÓÃµÄÏÂ±ê
 	int nUsageIndex = -1;
 
 	try
 	{
-		ppnFrequentSubStrBeginIndexs = new int*[m_nMainStrLen + 1];
+		ppnFrequentSubStrBeginIndexs = new int* [m_nMainStrLen + 1];
 		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 		{
 			ppnFrequentSubStrBeginIndexs[nIndex] = new int[MAX_CHARACTER_DOUBLECOUNT];
 			std::fill(ppnFrequentSubStrBeginIndexs[nIndex], ppnFrequentSubStrBeginIndexs[nIndex] + MAX_CHARACTER_DOUBLECOUNT, -1);
-			
+
 		}
 
-		ppnNextSameSubStrBeginIndexs = new int*[m_nMainStrLen];
+		ppnNextSameSubStrBeginIndexs = new int* [m_nMainStrLen + 1];
 		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 		{
-			ppnNextSameSubStrBeginIndexs[nIndex] = new int[m_nMainStrLen];
-			std::fill(ppnNextSameSubStrBeginIndexs[nIndex], ppnNextSameSubStrBeginIndexs[nIndex] + m_nMainStrLen, -1);
+			ppnNextSameSubStrBeginIndexs[nIndex] = new int[2 * m_nMainStrLen];
+			std::fill(ppnNextSameSubStrBeginIndexs[nIndex], ppnNextSameSubStrBeginIndexs[nIndex] + 2 * m_nMainStrLen, -1);
 		}
 
-		ppnExpendCharacterCounts = new int*[m_nMainStrLen];
+		ppnExpendCharacterCounts = new int* [m_nMainStrLen + 1];
 		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 		{
 			ppnExpendCharacterCounts[nIndex] = new int[MAX_CHARACTER_DOUBLECOUNT];
@@ -92,12 +95,21 @@ int CFindMostFrequentSubstring::GetSubString(double _dFrequencyPow, double _dLen
 
 		}
 
-		pnRetSection = new int[m_nMainStrLen + 1];
+		pnSubStrAppearCount = new int[m_nMainStrLen + 1];
+		memset(pnSubStrAppearCount, 0, sizeof(int) * (m_nMainStrLen + 1));
+
+		ppnRetSection = new int* [m_nMainStrLen + 1];
+		for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
+		{
+			// ³¤¶ÈÎªlenµÄ×Ó´®µÄ½á¹û£¬¶îÍâ¿ª±ÙÒ»¸ö£¬ÏÂ±êÎª0µÄÔªËØ´æ´¢½á¹û¸öÊı
+			ppnRetSection[nIndex] = new int[m_nMainStrLen + 1];
+			memset(ppnRetSection[nIndex], 0, sizeof(int) * (m_nMainStrLen + 1));
+		}
 
 	}
 	catch (...)
 	{
-		if (ppnFrequentSubStrBeginIndexs != nullptr) 
+		if (ppnFrequentSubStrBeginIndexs != nullptr)
 		{
 			for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
 			{
@@ -127,39 +139,55 @@ int CFindMostFrequentSubstring::GetSubString(double _dFrequencyPow, double _dLen
 			delete[] ppnExpendCharacterCounts;
 			ppnExpendCharacterCounts = nullptr;
 		}
-		if (pnRetSection != nullptr)
+		if (pnSubStrAppearCount != nullptr)
 		{
-			delete[] pnRetSection;
-			pnRetSection = nullptr;
+			delete[] pnSubStrAppearCount;
+			pnSubStrAppearCount = nullptr;
 		}
-		
+		if (ppnRetSection != nullptr)
+		{
+			for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
+			{
+				delete ppnRetSection[nIndex];
+				ppnRetSection[nIndex] = nullptr;
+			}
+			delete[] ppnRetSection;
+			ppnRetSection = nullptr;
+		}
+
 		return -1;
 	}
 	int nCurrentSubStrLen = 1;
 	int nMaxCharacterCount = 0;
 	for (int nIndex = 0; nIndex < m_nMainStrLen; nIndex++)
 	{
-		int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nIndex], false); // é•¿åº¦ä¸º1æ—¶é»˜è®¤ç”¨å³è¾¹
+		int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nIndex], false); // ³¤¶ÈÎª1Ê±Ä¬ÈÏÓÃÓÒ±ß
 		ppnNextSameSubStrBeginIndexs[nCurrentSubStrLen][nIndex] = ppnFrequentSubStrBeginIndexs[nCurrentSubStrLen][nCurrCharacter];
 		ppnFrequentSubStrBeginIndexs[nCurrentSubStrLen][nCurrCharacter] = nIndex;
 		ppnExpendCharacterCounts[nCurrentSubStrLen][nCurrCharacter]++;
 		if (ppnExpendCharacterCounts[nCurrentSubStrLen][nCurrCharacter] > nMaxCharacterCount)
 		{
 			nMaxCharacterCount = ppnExpendCharacterCounts[nCurrentSubStrLen][nCurrCharacter];
-			pnRetSection[nCurrentSubStrLen] = nIndex;
 		}
 	}
 
-	// å½“å‰è¿­ä»£åˆ°çš„æœ€é¢‘ç¹å­ä¸²çš„é•¿åº¦ï¼Œåˆå§‹ä¸ºå•ä¸ªå­—ç¬¦ï¼Œå³1
+	// µ±Ç°µü´úµ½µÄ×îÆµ·±×Ó´®µÄ³¤¶È£¬³õÊ¼Îªµ¥¸ö×Ö·û£¬¼´1
 	int64_t nMaxWeight = CalcWeight(nMaxCharacterCount, 1, _dFrequencyPow, _dLengthPow);
 
-	Recur(ppnFrequentSubStrBeginIndexs, ppnNextSameSubStrBeginIndexs, ppnExpendCharacterCounts, pnRetSection, nMaxCharacterCount, nCurrentSubStrLen);
+	Recur(ppnFrequentSubStrBeginIndexs, ppnNextSameSubStrBeginIndexs, ppnExpendCharacterCounts, pnSubStrAppearCount, ppnRetSection, nMaxCharacterCount, nCurrentSubStrLen);
 
-	for (int nIndex = 1; nIndex <= m_nMainStrLen; nIndex++)
+	for (int nLen = 1; nLen <= m_nMainStrLen; nLen++)
 	{
-		for (int i = pnRetSection[nIndex]; i < pnRetSection[nIndex] + nIndex; i++)
+		std::cout << "³¤¶ÈÎª" << nLen << std::endl;
+		for (int nRetIndex = 1; nRetIndex <= ppnRetSection[nLen][0]; nRetIndex++)
 		{
-			std::cout << m_pucMain[i];
+			std::cout << "¿ªÊ¼ÏÂ±ê " << ppnRetSection[nLen][nRetIndex] << " ";
+			std::cout << "³öÏÖ´ÎÊı " << pnSubStrAppearCount[nLen] << " ";
+			for (int i = ppnRetSection[nLen][nRetIndex]; i < ppnRetSection[nLen][nRetIndex] + nLen; i++)
+			{
+				std::cout << m_pucMain[i];
+			}
+			std::cout << std::endl;
 		}
 		std::cout << std::endl;
 	}
@@ -168,25 +196,112 @@ int CFindMostFrequentSubstring::GetSubString(double _dFrequencyPow, double _dLen
 	return 0;
 }
 
-int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int** _ppnNextSameSubStrBeginIndexs, int** _ppnExpendCharacterCounts, int* _pnRetSection, int _nMaxCharacterCount, int _nCurrentSubStrLen)
+
+int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int** _ppnNextSameSubStrBeginIndexs, int** _ppnExpendCharacterCounts, int* _pnSubStrAppearCount, int** _ppnRetSection, int _nMaxCharacterCount, int _nCurrentSubStrLen)
 {
 	if (_nCurrentSubStrLen > m_nMainStrLen) return 0;
 	else if (_nCurrentSubStrLen == m_nMainStrLen)
 	{
-		_pnRetSection[_nCurrentSubStrLen] = 0;
+		_ppnRetSection[_nCurrentSubStrLen][1] = 0;
+		_pnSubStrAppearCount[_nCurrentSubStrLen] = 1;
 		return 0;
 	}
 
 	bool pnVisited[MAX_CHARACTER_DOUBLECOUNT];
 	memset(pnVisited, false, sizeof(bool) * MAX_CHARACTER_DOUBLECOUNT);
 
-	for (int nHead = 0; nHead < MAX_CHARACTER_DOUBLECOUNT; nHead++)	// éå†æ‰€æœ‰å­ä¸²é“¾è¡¨çš„å¤´æŒ‡é’ˆ
+	for (int nHead = 0; nHead < MAX_CHARACTER_DOUBLECOUNT; nHead++)	// ±éÀúËùÓĞ×Ó´®Á´±íµÄÍ·Ö¸Õë
 	{
 		if (pnVisited[nHead] || _ppnExpendCharacterCounts[_nCurrentSubStrLen][nHead] < _nMaxCharacterCount) continue;
 
 		pnVisited[nHead] = true;
 
-	
+		int nNextSubStrLen = _nCurrentSubStrLen + 1;
+
+		std::fill(_ppnFrequentSubStrBeginIndexs[nNextSubStrLen], _ppnFrequentSubStrBeginIndexs[nNextSubStrLen] + MAX_CHARACTER_DOUBLECOUNT, -1);
+		std::fill(_ppnNextSameSubStrBeginIndexs[nNextSubStrLen], _ppnNextSameSubStrBeginIndexs[nNextSubStrLen] + m_nMainStrLen, -1);
+		std::fill(_ppnExpendCharacterCounts[nNextSubStrLen], _ppnExpendCharacterCounts[nNextSubStrLen] + MAX_CHARACTER_DOUBLECOUNT, 0);
+
+		int nMaxCharacterCount = 0;
+
+		int nSubStrBeginIndex;
+		nSubStrBeginIndex = _ppnFrequentSubStrBeginIndexs[_nCurrentSubStrLen][nHead];
+
+		if (_nMaxCharacterCount > _pnSubStrAppearCount[_nCurrentSubStrLen])
+		{
+			_pnSubStrAppearCount[_nCurrentSubStrLen] = _nMaxCharacterCount;
+			_ppnRetSection[_nCurrentSubStrLen][0] = 0;
+			_ppnRetSection[_nCurrentSubStrLen][++(_ppnRetSection[_nCurrentSubStrLen][0])] = (nSubStrBeginIndex % m_nMainStrLen);
+		}
+		else if (_nMaxCharacterCount == _pnSubStrAppearCount[_nCurrentSubStrLen])
+		{
+			_ppnRetSection[_nCurrentSubStrLen][++(_ppnRetSection[_nCurrentSubStrLen][0])] = (nSubStrBeginIndex % m_nMainStrLen);
+		}
+		if (_nMaxCharacterCount == 1) continue;
+
+
+		while (true)
+		{
+			int nRealBeginIndex = nSubStrBeginIndex % m_nMainStrLen;
+			int nRealEndIndex = nRealBeginIndex + _nCurrentSubStrLen - 1;
+			// Ïò×óÀ©Ò»¸ö×Ö·û
+			if (nSubStrBeginIndex - 1 >= 0)
+			{
+				int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nRealBeginIndex - 1], true);
+				_ppnNextSameSubStrBeginIndexs[nNextSubStrLen][nRealBeginIndex - 1] = _ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter];
+				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nRealBeginIndex - 1;  // Ïò×óÀ©Õ¹Ê±´æ´¢×Ó´®µÄ¿ªÊ¼Î»ÖÃ
+				_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter]++;
+				if (_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter] > nMaxCharacterCount)
+				{
+					nMaxCharacterCount = _ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter];
+					//_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex - 1;
+				}
+			}
+
+			// ÏòÓÒÀ©Ò»¸ö×Ö·û
+			if (nRealEndIndex + 1 <= m_nMainStrLen - 1)
+			{
+				int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nRealEndIndex + 1], false);
+				_ppnNextSameSubStrBeginIndexs[nNextSubStrLen][nRealBeginIndex + m_nMainStrLen] = _ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter];
+				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nRealBeginIndex + m_nMainStrLen; // ÏòÓÒÀ©Õ¹Ê±£¬½«¿ªÊ¼ÏÂ±ê¼ÓÉÏÄ¸´®³¤¶È£¬·½±ãºÍÏò×óÀ©Õ¹µÄÅÅ¿ª
+				_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter]++;
+				if (_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter] > nMaxCharacterCount)
+				{
+					nMaxCharacterCount = _ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter];
+					//_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex;
+				}
+			}
+
+			nSubStrBeginIndex = _ppnNextSameSubStrBeginIndexs[_nCurrentSubStrLen][nSubStrBeginIndex];
+			if (nSubStrBeginIndex < 0) break;
+		}
+
+		Recur(_ppnFrequentSubStrBeginIndexs, _ppnNextSameSubStrBeginIndexs, _ppnExpendCharacterCounts, _pnSubStrAppearCount, _ppnRetSection, nMaxCharacterCount, nNextSubStrLen);
+
+	}
+}
+
+
+/*
+int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int** _ppnNextSameSubStrBeginIndexs, int** _ppnExpendCharacterCounts, int* _pnSubStrAppearCount, int** _ppnRetSection, int _nMaxCharacterCount, int _nCurrentSubStrLen)
+{
+	if (_nCurrentSubStrLen > m_nMainStrLen) return 0;
+	else if (_nCurrentSubStrLen == m_nMainStrLen)
+	{
+		_ppnRetSection[_nCurrentSubStrLen][1] = 0;
+		_pnSubStrAppearCount[_nCurrentSubStrLen] = 1;
+		return 0;
+	}
+
+	bool pnVisited[MAX_CHARACTER_DOUBLECOUNT];
+	memset(pnVisited, false, sizeof(bool) * MAX_CHARACTER_DOUBLECOUNT);
+
+	for (int nHead = 0; nHead < MAX_CHARACTER_DOUBLECOUNT; nHead++)	// ±éÀúËùÓĞ×Ó´®Á´±íµÄÍ·Ö¸Õë
+	{
+		if (pnVisited[nHead] || _ppnExpendCharacterCounts[_nCurrentSubStrLen][nHead] < _nMaxCharacterCount) continue;
+
+		pnVisited[nHead] = true;
+
 		int nNextSubStrLen = _nCurrentSubStrLen + 1;
 
 		std::fill(_ppnFrequentSubStrBeginIndexs[nNextSubStrLen], _ppnFrequentSubStrBeginIndexs[nNextSubStrLen] + MAX_CHARACTER_DOUBLECOUNT, -1);
@@ -208,33 +323,46 @@ int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int**
 			nSubStrEndIndex = nSubStrBeginIndex + _nCurrentSubStrLen - 1;
 		}
 
+		if (_nMaxCharacterCount > _pnSubStrAppearCount[_nCurrentSubStrLen])
+		{
+			_pnSubStrAppearCount[_nCurrentSubStrLen] = _nMaxCharacterCount;
+			_ppnRetSection[_nCurrentSubStrLen][0] = 0;
+			_ppnRetSection[_nCurrentSubStrLen][++(_ppnRetSection[_nCurrentSubStrLen][0])] = nSubStrBeginIndex;
+		}
+		else if (_nMaxCharacterCount == _pnSubStrAppearCount[_nCurrentSubStrLen])
+		{
+			_ppnRetSection[_nCurrentSubStrLen][++(_ppnRetSection[_nCurrentSubStrLen][0])] = nSubStrBeginIndex;
+		}
+		if (_nMaxCharacterCount == 1) continue;
+		
+
 		while (true)
-		{			
-			// å‘å·¦æ‰©ä¸€ä¸ªå­—ç¬¦
+		{
+			// Ïò×óÀ©Ò»¸ö×Ö·û
 			if (nSubStrBeginIndex - 1 >= 0)
 			{
 				int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nSubStrBeginIndex - 1], true);
 				_ppnNextSameSubStrBeginIndexs[nNextSubStrLen][nSubStrBeginIndex - 1] = _ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter];
-				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nSubStrBeginIndex - 1;  // å‘å·¦æ‰©å±•æ—¶å­˜å‚¨å­ä¸²çš„å¼€å§‹ä½ç½®
+				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nSubStrBeginIndex - 1;  // Ïò×óÀ©Õ¹Ê±´æ´¢×Ó´®µÄ¿ªÊ¼Î»ÖÃ
 				_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter]++;
 				if (_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter] > nMaxCharacterCount)
 				{
 					nMaxCharacterCount = _ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter];
-					_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex - 1;
+					//_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex - 1;
 				}
 			}
 
-			// å‘å³æ‰©ä¸€ä¸ªå­—ç¬¦
+			// ÏòÓÒÀ©Ò»¸ö×Ö·û
 			if (nSubStrEndIndex + 1 <= m_nMainStrLen - 1)
 			{
 				int nCurrCharacter = GET_CHARACTER_DOUBLESIDE_HASH(m_pucMain[nSubStrEndIndex + 1], false);
 				_ppnNextSameSubStrBeginIndexs[nNextSubStrLen][nSubStrEndIndex + 1] = _ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter];
-				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nSubStrEndIndex + 1; // å‘å³æ‰©å±•æ—¶å­˜å‚¨å­ä¸²çš„ç»“æŸä½ç½®
+				_ppnFrequentSubStrBeginIndexs[nNextSubStrLen][nCurrCharacter] = nSubStrEndIndex + 1; // ÏòÓÒÀ©Õ¹Ê±´æ´¢×Ó´®µÄ½áÊøÎ»ÖÃ
 				_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter]++;
 				if (_ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter] > nMaxCharacterCount)
 				{
 					nMaxCharacterCount = _ppnExpendCharacterCounts[nNextSubStrLen][nCurrCharacter];
-					_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex;
+					//_pnRetSection[nNextSubStrLen] = nSubStrBeginIndex;
 				}
 			}
 
@@ -252,11 +380,11 @@ int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int**
 			}
 		}
 
-		Recur(_ppnFrequentSubStrBeginIndexs, _ppnNextSameSubStrBeginIndexs, _ppnExpendCharacterCounts, _pnRetSection, nMaxCharacterCount, nNextSubStrLen);
+		Recur(_ppnFrequentSubStrBeginIndexs, _ppnNextSameSubStrBeginIndexs, _ppnExpendCharacterCounts, _pnSubStrAppearCount, _ppnRetSection, nMaxCharacterCount, nNextSubStrLen);
 
 	}
 }
-
+*/
 int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen)
 {
 	if (_ppucRet == nullptr)
@@ -268,27 +396,27 @@ int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLe
 		return 0;
 	}
 
-	int pnCharacterCount[MAX_CHARACTER_COUNT]; // è®°å½•å­—ç¬¦çš„æ•°é‡
+	int pnCharacterCount[MAX_CHARACTER_COUNT]; // ¼ÇÂ¼×Ö·ûµÄÊıÁ¿
 	memset(pnCharacterCount, 0, sizeof(pnCharacterCount));
 	for (int nCharacterIndex = 0; nCharacterIndex < m_nMainStrLen; ++nCharacterIndex)
 	{
 		pnCharacterCount[m_pucMain[nCharacterIndex]]++;
 	}
 
-	// å­˜å‚¨å­—ç¬¦ä¸²ä¸­æ¯ä¸ªå­—ç¬¦çš„ä½ç½®ã€‚æ­¤å¤„è‹¥å­—ç¬¦ä¸²å¾ˆé•¿ï¼Œåˆ™ä¸ºäº†èŠ‚çœå†…å­˜ï¼Œä½¿ç”¨äº†ä¸ç­‰é•¿çš„äºŒç»´æ•°ç»„ã€‚è‹¥ä¸éœ€è¦è€ƒè™‘å†…å­˜ï¼Œåˆ™å¯ä»¥æ”¹ä¸ºé“¾è¡¨æ•°ç»„å‡å°‘ä¸€æ¬¡éå†
+	// ´æ´¢×Ö·û´®ÖĞÃ¿¸ö×Ö·ûµÄÎ»ÖÃ¡£´Ë´¦Èô×Ö·û´®ºÜ³¤£¬ÔòÎªÁË½ÚÊ¡ÄÚ´æ£¬Ê¹ÓÃÁË²»µÈ³¤µÄ¶şÎ¬Êı×é¡£Èô²»ĞèÒª¿¼ÂÇÄÚ´æ£¬Ôò¿ÉÒÔ¸ÄÎªÁ´±íÊı×é¼õÉÙÒ»´Î±éÀú
 	int** ppnCharacterPosition = nullptr;
-	// å­˜å‚¨å½“å‰è¿­ä»£åˆ€çš„é•¿åº¦çš„å­ä¸²çš„å¼€å§‹ä¸‹æ ‡
+	// ´æ´¢µ±Ç°µü´úµ¶µÄ³¤¶ÈµÄ×Ó´®µÄ¿ªÊ¼ÏÂ±ê
 	int* pnCurrSubStringBeginIndex = nullptr;
-	// pnRetSection[i]è¡¨ç¤ºé•¿åº¦ä¸ºiçš„æœ€é¢‘ç¹å­ä¸²ï¼Œå…¶ä¸­ä¸€ä¸ªçš„å¼€å§‹ä¸‹æ ‡
-	int* pnRetSection = nullptr; 
+	// pnRetSection[i]±íÊ¾³¤¶ÈÎªiµÄ×îÆµ·±×Ó´®£¬ÆäÖĞÒ»¸öµÄ¿ªÊ¼ÏÂ±ê
+	int* pnRetSection = nullptr;
 	try
 	{
-		pnCurrSubStringBeginIndex = new int[m_nMainStrLen]; // å½“å‰æœ€é¢‘ç¹å­ä¸²çš„å¼€å§‹ä½ç½®ã€‚å‘å·¦æ‰©å±•ä¸ºè´Ÿæ•°ï¼Œå‘å³æ‰©å±•ä¸ºæ­£æ•°ã€‚å­ä¸²é•¿åº¦ä¸º1æ—¶é»˜è®¤ä¸ºæ­£æ•°
+		pnCurrSubStringBeginIndex = new int[m_nMainStrLen]; // µ±Ç°×îÆµ·±×Ó´®µÄ¿ªÊ¼Î»ÖÃ¡£Ïò×óÀ©Õ¹Îª¸ºÊı£¬ÏòÓÒÀ©Õ¹ÎªÕıÊı¡£×Ó´®³¤¶ÈÎª1Ê±Ä¬ÈÏÎªÕıÊı
 		pnRetSection = new int[m_nMainStrLen];
-		ppnCharacterPosition = new int*[MAX_CHARACTER_COUNT];
+		ppnCharacterPosition = new int* [MAX_CHARACTER_COUNT];
 		for (int nCharacterIndex = 0; nCharacterIndex < MAX_CHARACTER_COUNT; nCharacterIndex++)
 		{
-			// ppnCharacterPosition[nCharacterIndex]ç¬¬0ä¸ªä½ç½®å­˜å‚¨è¯¥å­—ç¬¦çš„æ•°é‡ï¼Œåç»­å­˜å‚¨è¯¥å­—ç¬¦çš„ä¸‹æ ‡
+			// ppnCharacterPosition[nCharacterIndex]µÚ0¸öÎ»ÖÃ´æ´¢¸Ã×Ö·ûµÄÊıÁ¿£¬ºóĞø´æ´¢¸Ã×Ö·ûµÄÏÂ±ê
 			ppnCharacterPosition[nCharacterIndex] = new int[pnCharacterCount[nCharacterIndex] + 1];
 			memset(ppnCharacterPosition[nCharacterIndex], 0, sizeof(int) * (pnCharacterCount[nCharacterIndex] + 1));
 		}
@@ -319,9 +447,9 @@ int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLe
 
 	int nCurrentSubStringLen = 1;
 	int nCurrentSubStrCount = 0;
-	int nMaxAppearCount = -1; // å½“å‰æœ€é¢‘ç¹å­ä¸²çš„å‡ºç°æ¬¡æ•°
+	int nMaxAppearCount = -1; // µ±Ç°×îÆµ·±×Ó´®µÄ³öÏÖ´ÎÊı
 
-	// åˆå§‹åŒ–å“ˆå¸Œæ•°ç»„ï¼Œå­˜å‚¨é•¿åº¦ä¸º1çš„å­ä¸²ï¼ˆå³å•ä¸ªå­—ç¬¦ï¼‰çš„æ•°é‡å’Œæ‰€æœ‰ä¸‹æ ‡
+	// ³õÊ¼»¯¹şÏ£Êı×é£¬´æ´¢³¤¶ÈÎª1µÄ×Ó´®£¨¼´µ¥¸ö×Ö·û£©µÄÊıÁ¿ºÍËùÓĞÏÂ±ê
 	for (int nIndex = 0; nIndex < m_nMainStrLen; nIndex++)
 	{
 		unsigned char ucCurrCharacter = m_pucMain[nIndex];
@@ -333,14 +461,14 @@ int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLe
 		unsigned char ucCurrCharacter = m_pucMain[nIndex];
 		nMaxAppearCount = std::max(ppnCharacterPosition[ucCurrCharacter][0], nMaxAppearCount);
 	}
-	// å­˜å‚¨æœ€é¢‘ç¹å­ä¸²çš„å¼€å§‹ä¸‹æ ‡
+	// ´æ´¢×îÆµ·±×Ó´®µÄ¿ªÊ¼ÏÂ±ê
 	memset(pnCurrSubStringBeginIndex, 0, sizeof(int) * m_nMainStrLen);
 
 	while (nCurrentSubStringLen <= m_nMainStrLen)
 	{
 		for (int nIndex = 0; nIndex < MAX_CHARACTER_COUNT; nIndex++)
 		{
-			
+
 		}
 	}
 
