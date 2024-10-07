@@ -7,7 +7,7 @@ class CFindMostFrequentSubstring
 {
 public:
 	CFindMostFrequentSubstring();
-	CFindMostFrequentSubstring(unsigned char* _pucMain, int _nMainStrLen);
+	CFindMostFrequentSubstring(unsigned char* _pucMain, int _nMainStrLen, int _nFirstLayerSaveRank);
 	~CFindMostFrequentSubstring();
 
 	int GetSubString(double _dFrequencyPow, double _dLengthPow, unsigned char** _ppucRet, int& _nRetLen);
@@ -19,7 +19,10 @@ public:
 private:
 	inline double CalcWeight(int _nRepeatCount, int _nLength, double _dFrequencyPow, double _dLengthPow);
 
+	inline int GetLayerSaveRank(int _nLayer);
+
 private:
 	unsigned char* m_pucMain = nullptr;
 	int m_nMainStrLen = 0;
+	int m_nFirstLayerSaveRank = 1;
 };

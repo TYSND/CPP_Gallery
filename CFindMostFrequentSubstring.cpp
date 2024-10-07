@@ -3,14 +3,16 @@
 
 // 向左扩展的字符用[0, MAX_CHARACTER_COUNT - 1]存储，向右扩展的字符用[MAX_CHARACTER_COUNT, 2 * MAX_CHARACTER_COUNT - 1]存储
 #define GET_CHARACTER_DOUBLESIDE_HASH(_Character, _bLeft) (_bLeft ? _Character : _Character + MAX_CHARACTER_COUNT)
+#define max std::max
 
 CFindMostFrequentSubstring::CFindMostFrequentSubstring()
 {
 	m_pucMain = nullptr;
 }
 
-CFindMostFrequentSubstring::CFindMostFrequentSubstring(unsigned char* _pucMain, int _nMainStrLen)
+CFindMostFrequentSubstring::CFindMostFrequentSubstring(unsigned char* _pucMain, int _nMainStrLen, int _nFirstLayerSaveRank)
 {
+	m_nFirstLayerSaveRank = _nFirstLayerSaveRank;
 	if (_pucMain == nullptr || _nMainStrLen == 0)
 	{
 		m_pucMain = nullptr;
@@ -63,7 +65,7 @@ int CFindMostFrequentSubstring::GetSubString(double _dFrequencyPow, double _dLen
 	int** ppnExpendCharacterCounts = nullptr;
 	// 长度为i的子串的最多出现次数
 	int* pnSubStrAppearCount = nullptr;
-	// 结果集。pnRetSection[i]表示长度为i的最频繁子串的开始下标。暂时每个长度只存1个子串
+	// 结果集。ppnRetSection[i]的数组存储长度为i的最频繁子串的开始下标，其中ppnRetSection[i][0]存储结果个数，后续依次存储下标
 	int** ppnRetSection = nullptr;
 
 
@@ -227,6 +229,18 @@ int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int**
 		int nSubStrBeginIndex;
 		nSubStrBeginIndex = _ppnFrequentSubStrBeginIndexs[_nCurrentSubStrLen][nHead];
 
+		// 排掉相同的结果子串。例如ab和bc的数量相同，则ab向右扩成abc，bc向左扩成abc，这两个是同一个串，不能重复搜索
+		bool bRepeat = false;
+		for (int nRetIndex = 1; nRetIndex <= _ppnRetSection[_nCurrentSubStrLen][0]; nRetIndex++)
+		{
+			unsigned char ucRetBeginChar = m_pucMain[_ppnRetSection[_nCurrentSubStrLen][nRetIndex]];
+			if (ucRetBeginChar == m_pucMain[nSubStrBeginIndex % m_nMainStrLen])
+			{
+				bRepeat = true;
+			}
+		}
+		if (bRepeat) continue;
+
 		if (_nMaxCharacterCount > _pnSubStrAppearCount[_nCurrentSubStrLen])
 		{
 			_pnSubStrAppearCount[_nCurrentSubStrLen] = _nMaxCharacterCount;
@@ -244,6 +258,7 @@ int CFindMostFrequentSubstring::Recur(int** _ppnFrequentSubStrBeginIndexs, int**
 		{
 			int nRealBeginIndex = nSubStrBeginIndex % m_nMainStrLen;
 			int nRealEndIndex = nRealBeginIndex + _nCurrentSubStrLen - 1;
+
 			// 向左扩一个字符
 			if (nSubStrBeginIndex - 1 >= 0)
 			{
@@ -459,7 +474,7 @@ int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLe
 	for (int nIndex = 0; nIndex < MAX_CHARACTER_COUNT; nIndex++)
 	{
 		unsigned char ucCurrCharacter = m_pucMain[nIndex];
-		nMaxAppearCount = std::max(ppnCharacterPosition[ucCurrCharacter][0], nMaxAppearCount);
+		nMaxAppearCount = max(ppnCharacterPosition[ucCurrCharacter][0], nMaxAppearCount);
 	}
 	// 存储最频繁子串的开始下标
 	memset(pnCurrSubStringBeginIndex, 0, sizeof(int) * m_nMainStrLen);
@@ -481,4 +496,9 @@ int CFindMostFrequentSubstring::GetSubString1(double _dFrequencyPow, double _dLe
 double CFindMostFrequentSubstring::CalcWeight(int _nRepeatCount, int _nLength, double _dFrequencyPow, double _dLengthPow)
 {
 	return pow(_nRepeatCount, _dFrequencyPow) * pow(_nLength, _dLengthPow);
+}
+
+inline int CFindMostFrequentSubstring::GetLayerSaveRank(int _nLayer)
+{
+	return max(m_nFirstLayerSaveRank - _nLayer + 1, 1);
 }
